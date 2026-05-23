@@ -5,7 +5,7 @@ Small, focused OpenCode sidebar plugins that make daily coding sessions faster.
 If this helps your workflow, please star the repo.
 
 <p align="center">
-  <img src="assets/screenshow.png" alt="opencode-better-sidebar screenshot" width="980" />
+  <img src="assets/screenshot.png" alt="opencode-better-sidebar screenshot" width="980" />
 </p>
 
 ## Install

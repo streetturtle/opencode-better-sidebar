@@ -1,6 +1,6 @@
 {
   "name": "@streetturtle/opencode-open-in",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "OpenCode TUI sidebar plugin to open session folders in IDEs",
   "repository": {
     "type": "git",

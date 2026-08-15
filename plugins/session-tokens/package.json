@@ -1,6 +1,6 @@
 {
   "name": "@streetturtle/opencode-session-tokens",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "OpenCode TUI sidebar plugin for session token totals and per-model breakdown",
   "repository": {
     "type": "git",

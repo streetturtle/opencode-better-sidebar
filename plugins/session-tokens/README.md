@@ -8,27 +8,24 @@ OpenCode sidebar plugin for quick session token visibility.
 
 - Collapsed: `▶ Session Tokens <total> (<$cost>)` when cost data is available
 - Expanded: `▼ Session Tokens <total> (<$cost>)` with per-model totals
-- Falls back to session-level token counters when per-message breakdown is unavailable
+- Header totals use session-level aggregates maintained by the server, so they are exact for the entire session
 
 ## Cost logic
 
-- Uses assistant message `cost` values when available
-- Falls back to session-level `cost` when per-message costs are unavailable
+- The header cost uses the session-level aggregate, so it is exact for the entire session regardless of message paging
+- Per-model costs are summed from assistant message `cost` values
 
 ## Counting logic
 
+- The header token total uses the session-level aggregate maintained by the server
 - Per-message spend uses: `input + output + reasoning + cache.write`
-- Counts assistant messages with token data
+- Per-model rows are computed from the full message history
 - De-duplicates repeated assistant messages by message ID
 
 ## Install
 
-```sh
-opencode plugin @streetturtle/opencode-session-tokens
-```
-
-Global install:
+Requires OpenCode 2.x (Plugin API v2).
 
 ```sh
-opencode plugin --global @streetturtle/opencode-session-tokens
+opencode plugin add @streetturtle/opencode-session-tokens
 ```

@@ -1,34 +1,46 @@
 /** @jsxImportSource @opentui/solid */
-import { createEffect, createMemo, createSignal, For } from "solid-js"
+import { createEffect, createMemo, createSignal, Show } from "solid-js"
 import { Plugin, usePlugin } from "@opencode/plugin/tui"
 import { TextAttributes } from "@opentui/core"
 
 const MODEL_PICKER_COMMAND = "model.list"
 
-type Logo = {
-  color?: string
-  art: readonly [string, string, string]
+const BRAND_COLORS: Record<string, string> = {
+  anthropic: "#D97757",
+  openai: "#10A37F",
+  google: "#4285F4",
+  opencode: "#FAB283",
+  "github-copilot": "#8957E5",
+  mistral: "#FA520F",
+  deepseek: "#4D6BFE",
+  openrouter: "#6467F2",
 }
 
-const LOGOS: Record<string, Logo> = {
-  anthropic: { color: "#D97757", art: ["▄▀▀▀▄", "█▄▄▄█", "▀   ▀"] },
-  openai: { color: "#10A37F", art: ["▄▀▀▀▄", "█   █", " ▀▀▀ "] },
-  google: { color: "#4285F4", art: ["▄▀▀▀▀", "█  ▀█", " ▀▀▀ "] },
-  opencode: { color: "#FAB283", art: ["█▀▀▀█", "█   █", "▀▀▀▀▀"] },
-  "github-copilot": { color: "#8957E5", art: ["▄▀▀▀▀", "█    ", " ▀▀▀▀"] },
-  xai: { art: ["▀▄ ▄▀", "  █  ", "▄▀ ▀▄"] },
-  mistral: { color: "#FA520F", art: ["█▄ ▄█", "█ ▀ █", "▀   ▀"] },
-  deepseek: { color: "#4D6BFE", art: ["█▀▀▄ ", "█  █ ", "▀▀▀  "] },
-  openrouter: { color: "#6467F2", art: ["█▀▀▄ ", "█▀▀▄ ", "▀  ▀ "] },
+function initial(name: string): string {
+  return name.toUpperCase().match(/[A-Z0-9]/)?.[0] ?? "?"
 }
 
-const FALLBACK_LOGO: Logo = { art: ["▄▀▀▀▄", "█ ▄ █", "▀▄▄▄▀"] }
-
-function logoFor(...ids: Array<string | undefined>): Logo {
-  for (const id of ids) {
-    if (id && LOGOS[id]) return LOGOS[id]
+function hslToHex(hue: number, saturation: number, lightness: number): string {
+  const s = saturation / 100
+  const l = lightness / 100
+  const a = s * Math.min(l, 1 - l)
+  const channel = (n: number) => {
+    const k = (n + hue / 30) % 12
+    const value = l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1))
+    return Math.round(value * 255).toString(16).padStart(2, "0")
   }
-  return FALLBACK_LOGO
+  return `#${channel(0)}${channel(8)}${channel(4)}`
+}
+
+function colorFor(...ids: Array<string | undefined>): string | undefined {
+  for (const id of ids) {
+    if (id && BRAND_COLORS[id]) return BRAND_COLORS[id]
+  }
+  const id = ids.find(Boolean)
+  if (!id) return undefined
+  let hash = 0
+  for (const char of id) hash = (hash * 31 + char.charCodeAt(0)) >>> 0
+  return hslToHex(hash % 360, 65, 65)
 }
 
 function openModelPicker(context: Plugin.Context) {
@@ -72,9 +84,11 @@ function View(props: { sessionID: string }) {
 
   const modelName = createMemo(() => model()?.name ?? current()?.modelID ?? "No model selected")
   const providerName = createMemo(() => provider()?.name ?? current()?.providerID ?? "")
-  const logo = createMemo(() => logoFor(current()?.providerID, provider()?.canonical, model()?.canonical))
+  const letter = createMemo(() => initial(providerName() || modelName()))
   const [hovered, setHovered] = createSignal(false)
-  const accent = () => logo().color ?? theme().text.base
+  const accent = createMemo(
+    () => colorFor(current()?.providerID, provider()?.canonical, model()?.canonical) ?? theme().text.base,
+  )
 
   return (
     <box
@@ -84,11 +98,7 @@ function View(props: { sessionID: string }) {
       onMouseOver={() => setHovered(true)}
       onMouseOut={() => setHovered(false)}
     >
-      <box flexShrink={0}>
-        <For each={logo().art}>{(line) => (
-          <text selectable={false} fg={accent()}>{line}</text>
-        )}</For>
-      </box>
+      <ascii_font flexShrink={0} selectable={false} font="tiny" text={letter()} color={accent()} />
       <box flexGrow={1} minWidth={0}>
         <text
           selectable={false}
@@ -98,10 +108,17 @@ function View(props: { sessionID: string }) {
         >
           {modelName()}
         </text>
-        <text selectable={false} fg={accent()} wrapMode="none">{providerName()}</text>
-        <text selectable={false} fg={theme().text.muted} wrapMode="none">
-          {hovered() ? "click to switch" : current()?.variant ? `variant: ${current()?.variant}` : ""}
-        </text>
+        <Show
+          when={!hovered()}
+          fallback={<text selectable={false} fg={theme().text.muted} wrapMode="none">click to switch</text>}
+        >
+          <box flexDirection="row">
+            <text selectable={false} fg={accent()} wrapMode="none">{providerName()}</text>
+            <Show when={current()?.variant}>
+              <text selectable={false} fg={theme().text.muted} wrapMode="none"> · {current()?.variant}</text>
+            </Show>
+          </box>
+        </Show>
       </box>
     </box>
   )

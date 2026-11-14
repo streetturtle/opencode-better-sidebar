@@ -1,0 +1,46 @@
+{
+  "name": "@streetturtle/opencode-current-model",
+  "version": "1.0.0",
+  "description": "OpenCode TUI sidebar plugin that shows the current model and provider",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/streetturtle/opencode-better-sidebar",
+    "directory": "plugins/current-model"
+  },
+  "homepage": "https://github.com/streetturtle/opencode-better-sidebar/tree/main/plugins/current-model",
+  "bugs": {
+    "url": "https://github.com/streetturtle/opencode-better-sidebar/issues"
+  },
+  "type": "module",
+  "exports": {
+    "./tui": "./dist/tui.tsx"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "rm -rf dist && mkdir -p dist && cp index.ts dist/tui.tsx",
+    "pack:dry": "npm pack --dry-run",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "opencode",
+    "opencode-plugin",
+    "sidebar",
+    "model",
+    "provider"
+  ],
+  "license": "MIT",
+  "engines": {
+    "opencode": ">=2.0.0"
+  },
+  "peerDependencies": {
+    "@opentui/core": ">=0.5.17",
+    "@opentui/solid": ">=0.5.17",
+    "solid-js": ">=1.9.0"
+  },
+  "dependencies": {
+    "@opencode/plugin": "^2.0.32"
+  }
+}

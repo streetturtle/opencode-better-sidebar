@@ -18,6 +18,7 @@ opencode plugin add @streetturtle/opencode-context-progress
 opencode plugin add @streetturtle/opencode-recap
 opencode plugin add @streetturtle/opencode-session-tokens
 opencode plugin add @streetturtle/opencode-current-prompt
+opencode plugin add @streetturtle/opencode-current-model
 ```
 
 or from OpenCode, press <kbd>ctrl</kbd>+<kbd>p</kbd> -> "Install Plugin" -> "@streetturtle/opencode-open-in"
@@ -29,3 +30,4 @@ or from OpenCode, press <kbd>ctrl</kbd>+<kbd>p</kbd> -> "Install Plugin" -> "@st
 - [`@streetturtle/opencode-recap`](./plugins/recap) - one-click AI recap for the current session.
 - [`@streetturtle/opencode-session-tokens`](./plugins/session-tokens) - collapsible session token totals with per-model breakdown.
 - [`@streetturtle/opencode-current-prompt`](./plugins/current-prompt) - keeps the latest user prompt visible in the sidebar.
+- [`@streetturtle/opencode-current-model`](./plugins/current-model) - shows the current model and provider; click to open the model picker.

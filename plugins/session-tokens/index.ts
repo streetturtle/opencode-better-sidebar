@@ -144,14 +144,14 @@ function View(props: { sessionID: string }) {
       <box>
         <box flexDirection="row" gap={1} onMouseDown={() => canExpand() && setOpen((x) => !x)}>
           <Show when={canExpand()}>
-            <text fg={theme().text.base}>{open() ? "▼" : "▶"}</text>
+            <text selectable={false} fg={theme().text.base}>{open() ? "▼" : "▶"}</text>
           </Show>
-          <text fg={theme().text.base}>
+          <text selectable={false} fg={theme().text.base}>
             <b>Session Tokens</b>
           </text>
-          <text fg={theme().text.muted}>{formatInt(data().totalTokens)}</text>
+          <text selectable={false} fg={theme().text.muted}>{formatInt(data().totalTokens)}</text>
           <Show when={data().hasCost}>
-            <text fg={theme().text.muted}> ({formatMoney(data().totalCost)})</text>
+            <text selectable={false} fg={theme().text.muted}> ({formatMoney(data().totalCost)})</text>
           </Show>
         </box>
 

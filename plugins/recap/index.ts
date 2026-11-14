@@ -102,6 +102,7 @@ function View(props: { session_id: string; onRecap: () => void }) {
   return (
     <box>
       <text
+        selectable={false}
         fg={theme().text.base}
         attributes={TextAttributes.BOLD}
         onMouseDown={() => { if (!loading()) props.onRecap() }}

@@ -181,6 +181,7 @@ function IDEButton(props: {
 
   return (
     <text
+      selectable={false}
       fg={disabled() ? theme().text.muted : theme().text.base}
       attributes={TextAttributes.BOLD}
       onMouseDown={() => {

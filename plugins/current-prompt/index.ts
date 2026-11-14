@@ -36,9 +36,9 @@ function View(props: { sessionID: string }) {
       <box>
         <box flexDirection="row" gap={1} onMouseDown={() => canExpand() && setOpen((x) => !x)}>
           <Show when={canExpand()}>
-            <text fg={theme().text.base}>{open() ? "▼" : "▶"}</text>
+            <text selectable={false} fg={theme().text.base}>{open() ? "▼" : "▶"}</text>
           </Show>
-          <text fg={theme().text.base}>
+          <text selectable={false} fg={theme().text.base}>
             <b>Current Prompt</b>
           </text>
         </box>

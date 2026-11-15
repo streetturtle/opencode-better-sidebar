@@ -1,6 +1,6 @@
 {
   "name": "@streetturtle/opencode-recap",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "OpenCode TUI plugin - AI session recap in the sidebar",
   "repository": {
     "type": "git",

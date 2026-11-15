@@ -55,6 +55,12 @@ function inferSessionModel(messages: any[]): ModelChoice | undefined {
   return { providerID, id }
 }
 
+function selectedModel(context: Plugin.Context): ModelChoice | undefined {
+  const selected = context.ui.model.current()
+  if (!selected) return
+  return { providerID: selected.providerID, id: selected.modelID }
+}
+
 function messageText(message: any): string {
   if (message?.type === "user") return (message.text ?? "").trim()
   if (message?.type === "assistant") {
@@ -98,18 +104,38 @@ function View(props: { session_id: string; onRecap: () => void }) {
   const recap = () => getRecapSignal(props.session_id)[0]()
   const loading = () => getLoadingSignal(props.session_id)[0]()
   const syntaxStyle = createMemo(() => buildSyntaxStyle(context))
+  const [view, setView] = context.storage.store("view", { initial: { open: true } })
+  const hasRecap = () => recap() !== null && !loading()
+
+  const setOpen = (update: (open: boolean) => boolean) => {
+    setView((draft) => {
+      draft.open = update(draft.open)
+    }).catch((error) => console.error("Failed to persist recap sidebar state", error))
+  }
 
   return (
     <box>
-      <text
-        selectable={false}
-        fg={theme().text.base}
-        attributes={TextAttributes.BOLD}
-        onMouseDown={() => { if (!loading()) props.onRecap() }}
-      >
-        {loading() ? "Generating..." : "Recap"}
-      </text>
-      <Show when={recap() !== null && !loading()}>
+      <box flexDirection="row" gap={1}>
+        <box flexDirection="row" gap={1} onMouseDown={() => { if (hasRecap()) setOpen((open) => !open) }}>
+          <Show when={hasRecap()}>
+            <text selectable={false} fg={theme().text.base}>{view.open ? "▼" : "▶"}</text>
+          </Show>
+          <text selectable={false} fg={theme().text.base} attributes={TextAttributes.BOLD}>Recap</text>
+        </box>
+        <text
+          selectable={false}
+          fg={loading() ? theme().text.muted : theme().text.action.primary.base}
+          attributes={TextAttributes.BOLD}
+          onMouseDown={() => {
+            if (loading()) return
+            setOpen(() => true)
+            props.onRecap()
+          }}
+        >
+          {loading() ? "Generating..." : "[Generate]"}
+        </text>
+      </box>
+      <Show when={hasRecap() && view.open}>
         <markdown
           content={recap()!}
           syntaxStyle={syntaxStyle()}
@@ -158,6 +184,7 @@ function setup(context: Plugin.Context) {
 
     const [currentRecap] = getRecapSignal(sessionID)
     const previousRecap = currentRecap()
+    let modelLabel = "default"
 
     try {
       if (optionsError) {
@@ -184,7 +211,8 @@ function setup(context: Plugin.Context) {
         return
       }
 
-      const modelToUse = configuredRecapModel ?? inferSessionModel(allMessages)
+      const modelToUse = configuredRecapModel ?? inferSessionModel(allMessages) ?? selectedModel(context)
+      if (modelToUse) modelLabel = `${modelToUse.providerID}/${modelToUse.id}`
 
       const prompt = `You are a summarization assistant. Output only Markdown - no tools, no files, no questions.
 Do not use Markdown tables.
@@ -203,13 +231,10 @@ ${transcript}`
 
       timeoutHandle = setTimeout(() => abort.abort(new Error("Recap timed out")), 30_000)
 
-      const result = await client.generate.text(
-        {
-          prompt,
-          ...(modelToUse ? { model: modelToUse } : {}),
-        },
-        { signal: abort.signal },
-      )
+      // Without a configured model, generate from the session itself so the request matches chat
+      const result = configuredRecapModel
+        ? await client.generate.text({ prompt, model: configuredRecapModel }, { signal: abort.signal })
+        : await client.session.generate({ sessionID, prompt }, { signal: abort.signal })
 
       const recapText = (result?.text ?? "").trim()
 
@@ -218,7 +243,7 @@ ${transcript}`
 
     } catch (err: any) {
       const reason = abort.signal.aborted ? abort.signal.reason : err
-      setRecap(`*Error: ${reason?.message ?? String(reason)}*`)
+      setRecap(`*Error (${modelLabel}): ${reason?.message ?? String(reason)}*`)
     } finally {
       if (timeoutHandle) {
         clearTimeout(timeoutHandle)

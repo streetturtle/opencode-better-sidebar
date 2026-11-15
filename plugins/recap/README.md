@@ -2,7 +2,8 @@
 
 One-click Markdown session recap in the OpenCode sidebar.
 
-- Click **Recap** to generate a short summary
+- Click **[Generate]** to create or update a short summary
+- Click **Recap** (`▶` / `▼`) to collapse or expand the summary
 - Stays in the sidebar (does not pollute the chat thread)
 - Auto-clears after 3 new prompts to keep it fresh
 
@@ -20,19 +21,19 @@ Project-only: add `"@streetturtle/opencode-recap"` to `plugins` in `opencode.jso
 
 ## Usage
 
-Open a session and click **Recap** in the sidebar.
+Open a session and click **[Generate]** next to **Recap** in the sidebar.
 
 What the plugin does internally:
 
 - Uses the most recent 10 messages as recap context
 - Reuses previous recap output for continuity
-- Generates the recap with a one-off text generation request (no extra session is created)
+- Generates the recap from the current session without adding anything to its history (no extra session is created)
 
 ## Model selection
 
-By default, recap uses the session's most recent assistant model.
+By default, recap uses the same model as the session's chat.
 
-You can override it by setting both `providerID` and `modelID` in the plugin options in `opencode.jsonc`:
+You can override it, for example with a small model, by setting both `providerID` and `modelID` in the plugin options in `opencode.jsonc`:
 
 ```json
 {

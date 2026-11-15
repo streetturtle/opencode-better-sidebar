@@ -1,5 +1,5 @@
 /** @jsxImportSource @opentui/solid */
-import { createEffect, createMemo, createSignal, For, Show } from "solid-js"
+import { createEffect, createMemo, For, Show } from "solid-js"
 import { Plugin, usePlugin } from "@opencode/plugin/tui"
 
 const MAX_MODEL_ROWS = 10
@@ -69,7 +69,8 @@ function shortModelLabel(label: string): string {
 
 function View(props: { sessionID: string }) {
   const context = usePlugin()
-  const [open, setOpen] = createSignal(false)
+  const [view, setView] = context.storage.store("view", { initial: { open: false } })
+  const open = () => view.open
   const theme = () => context.theme
 
   createEffect(() => {
@@ -142,7 +143,12 @@ function View(props: { sessionID: string }) {
   return (
     <Show when={show()}>
       <box>
-        <box flexDirection="row" gap={1} onMouseDown={() => canExpand() && setOpen((x) => !x)}>
+        <box flexDirection="row" gap={1} onMouseDown={() => {
+          if (!canExpand()) return
+          setView((draft) => {
+            draft.open = !draft.open
+          }).catch((error) => console.error("Failed to persist session tokens sidebar state", error))
+        }}>
           <Show when={canExpand()}>
             <text selectable={false} fg={theme().text.base}>{open() ? "▼" : "▶"}</text>
           </Show>

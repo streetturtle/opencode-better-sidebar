@@ -15,7 +15,7 @@ Compact context usage widget for the OpenCode sidebar.
 - Token count formula: `input + output + reasoning + cache.read + cache.write`
 - Context window is read from the active provider/model metadata
 - Bar color changes with usage:
-  - normal: `< 70%`
+  - normal (theme accent color): `< 70%`
   - warning: `>= 70%`
   - danger: `>= 90%`
 

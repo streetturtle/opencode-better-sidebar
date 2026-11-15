@@ -105,7 +105,7 @@ function View(props: { sessionID: string }) {
       ? theme().text.feedback.error.base
       : percent >= 70
         ? theme().text.feedback.warning.base
-        : theme().text.action.primary.base
+        : theme().hue.accent[200]
     return {
       bar: bar.bar,
       color,

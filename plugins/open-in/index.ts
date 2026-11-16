@@ -49,16 +49,25 @@ function resolveZedCLIPath(): string | undefined {
   return candidates.find((candidate) => existsSync(candidate))
 }
 
-// Linux and WSL: locate the IDE's CLI launcher on PATH.
+// Locate the IDE's CLI launcher on PATH. Windows uses `where` and may return
+// a shell-script shim before the runnable .cmd/.exe, so prefer an executable.
 function resolveCLIPath(command: string): string | undefined {
-  const result = spawnSync("which", [command], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] })
+  const locator = platform() === "win32" ? "where" : "which"
+  const result = spawnSync(locator, [command], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] })
   if (result.status !== 0) return undefined
-  return result.stdout.split(/\r?\n/).map((line) => line.trim()).find(Boolean)
+  const candidates = result.stdout.split(/\r?\n/).map((line) => line.trim()).filter(Boolean)
+  if (platform() === "win32") {
+    const runnable = candidates.find((candidate) => /\.(exe|cmd|bat|com)$/i.test(candidate))
+    if (runnable) return runnable
+  }
+  return candidates[0]
 }
 
 function launchWithCLI(cli: string, targetPath: string): Promise<void> {
   return new Promise((resolve, reject) => {
-    const child = spawn(cli, [targetPath], { detached: true, stdio: "ignore" })
+    const child = platform() === "win32"
+      ? spawn("cmd.exe", ["/c", cli, targetPath], { detached: true, stdio: "ignore", windowsHide: true })
+      : spawn(cli, [targetPath], { detached: true, stdio: "ignore" })
     child.once("error", reject)
     child.once("spawn", () => {
       child.unref()
@@ -68,7 +77,7 @@ function launchWithCLI(cli: string, targetPath: string): Promise<void> {
 }
 
 function isSupportedPlatform(): boolean {
-  return platform() === "darwin" || platform() === "linux"
+  return platform() === "darwin" || platform() === "linux" || platform() === "win32"
 }
 
 function checkIDEInstalled(ide: IDEAction): boolean {
@@ -112,7 +121,7 @@ async function openInIDE(context: Plugin.Context, sessionID: string, ide: IDEAct
 
   try {
     if (!isSupportedPlatform()) {
-      throw new Error("Open In supports macOS and Linux/WSL only")
+      throw new Error("Open In supports macOS, Linux/WSL, and Windows")
     }
 
     const [availability, setAvailability] = getAvailabilitySignal(ide.appName)
